@@ -7,3 +7,7 @@
 feed forward n同理。
 
 2023.03.27 上传export transformer block v2代码，移除原有问题代码
+
+目前试运行推理代码为example.py
+导出特定模块代码为export_fp16_dynamic.py
+后续还会添加固定输入版本的到处代码
