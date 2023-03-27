@@ -5,3 +5,5 @@
 需要注意的是如果要单独导出attention block的话，需要先初始化attention norm对input tensor进行一次预处理才能给attention block当作dummy input进行导出。
 
 feed forward n同理。
+
+2023.03.27 上传export transformer block v2代码，移除原有问题代码
