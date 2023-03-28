@@ -10,4 +10,14 @@ feed forward n同理。
 
 目前试运行推理代码为example.py
 导出特定模块代码为export_fp16_dynamic.py
-后续还会添加固定输入版本的到处代码
+
+上传export transformer block v3代码，对应为status的ipynb文件
+v3版本对应的模型已经去除了内部动态算子的部分，并且量化精度测试完毕。
+
+2023.03.28 上传了导出完整llama模型的代码，对应export full model的ipynb文件
+目前只支持torch jit 和 torch script的格式导出，onnx版本目前仍然需要修复。
+
+
+上传export 65B transformer block v1代码
+完成了65B llama模型tfblock，token embedding 和last fc layer的导出代码。
+对应文件为export 65B 的ipynb
