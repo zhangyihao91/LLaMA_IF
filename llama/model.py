@@ -54,8 +54,8 @@ def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
 
 def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
     ndim = x.ndim
-    assert 0 <= 1 < ndim
-    assert freqs_cis.shape == (x.shape[1], x.shape[-2], 2)
+    # assert 0 <= 1 < ndim
+    # assert freqs_cis.shape == (x.shape[1], x.shape[-2], 2)
     shape = [d if i == 1 or i == ndim - 2 else 1 for i, d in enumerate(x.shape)]
     shape[-1] = 2
     return freqs_cis.view(shape)
@@ -81,16 +81,18 @@ def apply_rotary_emb(
     xk: torch.Tensor,
     freqs_cis: torch.Tensor ###[real, image] -> [real, image, 2],
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    xq_shape = list(xq.shape)
-    xk_shape = list(xk.shape)
+    # xq_shape = list(xq.shape)
+    # xk_shape = list(xk.shape)
     
-    xq_shape[-1] = int(xq_shape[-1]/2)
-    xq_shape.append(2)
+    # xq_shape[-1] = int(xq_shape[-1]/2)
+    # xq_shape.append(2)
     
-    xk_shape[-1] = int(xk_shape[-1]/2)
-    xk_shape.append(2)
+    # xk_shape[-1] = int(xk_shape[-1]/2)
+    # xk_shape.append(2)
     #xq_ = xq.float().reshape(*xq.shape[:-1], -1, 2) ###[real, image, 2]
     #xk_ = xk.float().reshape(*xk.shape[:-1], -1, 2) ###[real, image, 2]
+    xq_shape = (1, 1, 32, 64, 2)
+    xk_shape = (1, 1, 32, 64, 2)
     xq_ = xq.float().reshape(xq_shape)
     xk_ = xk.float().reshape(xk_shape)
     freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
@@ -165,8 +167,10 @@ class Attention(nn.Module):
         self.cache_k[:bsz, start_pos : start_pos + seqlen] = xk
         self.cache_v[:bsz, start_pos : start_pos + seqlen] = xv
 
-        keys = self.cache_k[:bsz, : start_pos + seqlen]
-        values = self.cache_v[:bsz, : start_pos + seqlen]
+        # keys = self.cache_k[:bsz, : start_pos + seqlen]
+        # values = self.cache_v[:bsz, : start_pos + seqlen]
+        keys = self.cache_k[:bsz]
+        values = self.cache_v[:bsz]
 
         xq = xq.transpose(1, 2)
         keys = keys.transpose(1, 2)
@@ -254,8 +258,7 @@ class Transformer(nn.Module):
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
     @torch.inference_mode()
-    def forward(self, input_tensor: torch.Tensor):
-        
+    def forward(self, tokens: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: torch.Tensor):
 #         start_pos = start_pos.item()
 #         _bsz, seqlen = tokens.shape
 #         h = self.tok_embeddings(tokens)
@@ -273,20 +276,20 @@ class Transformer(nn.Module):
 #         output = self.output(h[:, -1, :])  # only compute last logits
 #         return output.float()
 
-        token_len = input_tensor.shape[1] 
-        tokens = input_tensor[:, 0: token_len-1]
-        start_pos = input_tensor[:, -1].item()
+        # token_len = input_tensor.shape[1] 
+        # tokens = input_tensor[:, 0: token_len-1]
+        # start_pos = input_tensor[:, -1].item()
+        # start_pos = tensor_start_pos.item()
         _bsz, seqlen = tokens.shape
         ### tokens.shape = [1, 8]
         h = self.tok_embeddings(tokens)
         ### [1, 8, 4096]
-        self.freqs_cis = self.freqs_cis.to(h.device)
-        freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
+        # self.freqs_cis = self.freqs_cis.to(h.device)
+        # freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
 
-        mask = torch.ones((1,1,seqlen, seqlen))
-
-        mask[...,:,:] = float('-inf')
-        mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
+        # mask = torch.ones((1,1,seqlen, seqlen))
+        # mask[...,:,:] = float('-inf')
+        # mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
 
         ###32 layers 
         for layer in self.layers: 
