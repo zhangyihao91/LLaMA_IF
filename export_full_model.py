@@ -91,7 +91,8 @@ freqs_cis = freqs_cis_all[start_pos : start_pos + seqlen]
 
 # dummy_inputs = torch.cat((tokens[:, prev_pos:cur_pos], torch.tensor([[prev_pos]]).cuda()), 1)
 # dummy_inputs = (tokens[:, prev_pos:cur_pos].cuda(), torch.tensor([[prev_pos]]).cuda(), mask.cuda(), freqs_cis.cuda())
-dummy_inputs = (tokens[:, prev_pos:cur_pos].cuda(), prev_pos, freqs_cis.cuda(), mask.cuda())
+# dummy_inputs = (tokens[:, prev_pos:cur_pos].cuda(), prev_pos, freqs_cis.cuda(), mask.cuda())
+dummy_inputs = (tokens[:, prev_pos:cur_pos].cuda(), prev_pos, mask.cuda())
 
 # %%
 # with torch.no_grad():
@@ -104,15 +105,15 @@ dummy_inputs = (tokens[:, prev_pos:cur_pos].cuda(), prev_pos, freqs_cis.cuda(), 
 #     script = torch.jit.script(generator.model, dummy_inputs)
 #     torch.jit.save(script, './transformer_static.script.pt')
 
-# with torch.no_grad():
-#     model = model.cuda()
-#     model.eval()
-#     torch.onnx.export(model, dummy_inputs, 'onnx/llama7B_static.onnx/llama7B_static.onnx', export_params=True, verbose=True, opset_version=14)
-
-
-x = torch.full((1, 1, 4096), 0, device=tokens.device)
-transformer_block_inputs = (x.cuda(), prev_pos, freqs_cis.cuda(), mask.cuda())
 with torch.no_grad():
     model = model.cuda()
     model.eval()
-    torch.onnx.export(model.layers[0], transformer_block_inputs, 'onnx/llama7B_transformer_block.onnx/transformer_block.onnx', export_params=True, verbose=True, opset_version=14)
+    torch.onnx.export(model, dummy_inputs, 'onnx/llama7B_static.onnx/llama7B_static.onnx', export_params=True, verbose=True, opset_version=14)
+
+
+# x = torch.full((1, 1, 4096), 0, device=tokens.device)
+# transformer_block_inputs = (x.cuda(), prev_pos, freqs_cis.cuda(), mask.cuda())
+# with torch.no_grad():
+#     model = model.cuda()
+#     model.eval()
+#     torch.onnx.export(model.layers[0], transformer_block_inputs, 'onnx/llama7B_transformer_block.onnx/transformer_block.onnx', export_params=True, verbose=True, opset_version=14)

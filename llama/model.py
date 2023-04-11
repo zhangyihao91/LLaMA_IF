@@ -258,7 +258,7 @@ class Transformer(nn.Module):
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
     @torch.inference_mode()
-    def forward(self, tokens: torch.Tensor, start_pos: int, freqs_cis: torch.Tensor, mask: torch.Tensor):
+    def forward(self, tokens: torch.Tensor, start_pos: int, mask: torch.Tensor):
 #         start_pos = start_pos.item()
 #         _bsz, seqlen = tokens.shape
 #         h = self.tok_embeddings(tokens)
@@ -280,12 +280,13 @@ class Transformer(nn.Module):
         # tokens = input_tensor[:, 0: token_len-1]
         # start_pos = input_tensor[:, -1].item()
         # start_pos = tensor_start_pos.item()
-        _bsz, seqlen = tokens.shape
+        # _bsz, seqlen = tokens.shape
         ### tokens.shape = [1, 8]
         h = self.tok_embeddings(tokens)
         ### [1, 8, 4096]
-        # self.freqs_cis = self.freqs_cis.to(h.device)
-        # freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
+        self.freqs_cis = self.freqs_cis.to(h.device)
+        seqlen = 1
+        freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
 
         # mask = torch.ones((1,1,seqlen, seqlen))
         # mask[...,:,:] = float('-inf')
